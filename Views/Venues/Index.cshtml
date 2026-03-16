@@ -1,0 +1,79 @@
+@model IEnumerable<EventEase.Models.Venue>
+
+@{
+    ViewData["Title"] = "Venues";
+}
+
+<div class="hero-section">
+    <div class="container">
+        <h1 class="display-4 fw-bold">
+            <i class="bi bi-building"></i> Venues
+        </h1>
+        <p class="lead">Manage your event venues</p>
+    </div>
+</div>
+
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>All Venues</h2>
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Add New Venue
+        </a>
+    </div>
+
+    <div class="row">
+        @foreach (var item in Model)
+        {
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    @if (!string.IsNullOrEmpty(item.ImageUrl))
+                    {
+                        <img src="@item.ImageUrl" class="venue-image" alt="@item.VenueName">
+                    }
+                    else
+                    {
+                        <div class="venue-image bg-light d-flex align-items-center justify-content-center">
+                            <i class="bi bi-building" style="font-size: 4rem; color: #ccc;"></i>
+                        </div>
+                    }
+                    <div class="card-body">
+                        <h5 class="card-title">@item.VenueName</h5>
+                        <p class="card-text text-muted">
+                            <i class="bi bi-geo-alt"></i> @item.Location
+                        </p>
+                        <p class="card-text">
+                            <span class="badge bg-info">
+                                <i class="bi bi-people"></i> Capacity: @item.Capacity
+                            </span>
+                        </p>
+                    </div>
+                    <div class="card-footer bg-transparent">
+                        <div class="d-flex justify-content-between">
+                            <a asp-action="Details" asp-route-id="@item.VenueId" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-eye"></i> View
+                            </a>
+                            <a asp-action="Edit" asp-route-id="@item.VenueId" class="btn btn-sm btn-outline-warning">
+                                <i class="bi bi-pencil"></i> Edit
+                            </a>
+                            <a asp-action="Delete" asp-route-id="@item.VenueId" class="btn btn-sm btn-outline-danger">
+                                <i class="bi bi-trash"></i> Delete
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="text-center py-5">
+            <i class="bi bi-building" style="font-size: 5rem; color: #ccc;"></i>
+            <h3 class="mt-3 text-muted">No Venues Found</h3>
+            <p class="text-muted">Get started by adding your first venue.</p>
+            <a asp-action="Create" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Add New Venue
+            </a>
+        </div>
+    }
+</div>
