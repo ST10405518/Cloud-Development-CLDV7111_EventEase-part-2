@@ -27,7 +27,7 @@ The application uses three main entities:
 2. **Event** - Stores event details (name, date, description, optional venue)
 3. **Booking** - Links events to venues with booking dates and customer info
 
-See `DATABASE_DOCUMENTATION.md` for complete ERD and schema details.
+
 
 ## Getting Started
 
