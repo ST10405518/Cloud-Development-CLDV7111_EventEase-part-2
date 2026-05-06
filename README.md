@@ -5,17 +5,25 @@ An ASP.NET Core MVC web application for managing event venue bookings. Built for
 ## Features
 
 - **Venue Management**: Create, view, update, and delete venues with details including capacity, location, and images
-- **Event Management**: Manage events that can be booked at various venues
+  - Image upload to Azure Blob Storage
+  - Delete protection (cannot delete venues with active bookings)
+- **Event Management**: Manage events that must be assigned to venues
+  - Required venue selection for all events
+  - Search functionality by event name and description
 - **Booking System**: Create and manage venue bookings with conflict detection to prevent double bookings
+  - Real-time conflict detection
+  - Search functionality by event, venue, or customer name
 - **Calendar View**: Visual timeline of all bookings organized by month
 - **Dashboard**: Quick overview of system statistics and upcoming bookings
-- **Responsive Design**: Modern, mobile-friendly Bootstrap UI
+- **Responsive Design**: Modern, mobile-friendly Bootstrap UI with toast notifications
+- **Search Functionality**: Filter venues, events, and bookings with real-time search
 
 ## Technology Stack
 
 - **Framework**: ASP.NET Core MVC (.NET 8)
 - **Database**: SQL Server (with Azure SQL support)
 - **ORM**: Entity Framework Core 8
+- **Storage**: Azure Blob Storage (for venue images)
 - **UI**: Bootstrap 5, Bootstrap Icons
 - **Architecture**: Model-View-Controller (MVC)
 
@@ -23,9 +31,22 @@ An ASP.NET Core MVC web application for managing event venue bookings. Built for
 
 The application uses three main entities:
 
-1. **Venue** - Stores venue information (name, location, capacity, image)
-2. **Event** - Stores event details (name, date, description, optional venue)
+1. **Venue** - Stores venue information (name, location, capacity, image URL)
+   - Primary Key: VenueId
+   - Required fields: VenueName, Location, Capacity
+   - Optional: ImageUrl, CreatedDate, ModifiedDate
+
+2. **Event** - Stores event details (name, date, description, venue)
+   - Primary Key: EventId
+   - Required fields: EventName, EventDate, VenueId
+   - Optional: Description, CreatedDate, ModifiedDate
+   - Foreign Key: VenueId (references Venues table, required)
+
 3. **Booking** - Links events to venues with booking dates and customer info
+   - Primary Key: BookingId
+   - Required fields: VenueId, EventId, StartDate, EndDate, CustomerName
+   - Optional: CustomerEmail, CustomerPhone, BookingStatus, BookingDate, CreatedDate, ModifiedDate
+   - Foreign Keys: VenueId (references Venues), EventId (references Events)
 
 
 
@@ -67,7 +88,12 @@ The application uses three main entities:
 
 ```json
 "DefaultConnection": "Server=(localdb)\\mssqllocaldb;Database=EventEaseDB;Trusted_Connection=True;MultipleActiveResultSets=true"
+"AzureStorage": {
+  "ConnectionString": "DefaultEndpointsProtocol=https;AccountName=YOUR_STORAGE_ACCOUNT;AccountKey=YOUR_KEY;EndpointSuffix=core.windows.net"
+}
 ```
+
+**Important**: For Azure deployment, do NOT commit real connection strings to GitHub. Use Azure Portal configuration instead.
 
 ## Azure Deployment Guide
 
@@ -185,15 +211,50 @@ The application uses three main entities:
    ```
 
 2. **Configure App Service Connection String**
+   - Go to Azure Portal → App Service → Settings → Configuration → Connection strings
+   - Add:
+     - **Name**: `DefaultConnection`
+     - **Value**: Your Azure SQL connection string
+     - **Type**: `SQLAzure`
+   - Click **Save** and **Restart**
+
+### Part 3: Set Up Azure Blob Storage
+
+#### Create Storage Account and Container
+
+1. **Create Storage Account**
    ```bash
-   az webapp config connection-string set \
+   az storage account create \
+     --name eventeasestorage \
      --resource-group EventEaseResourceGroup \
-     --name eventease-booking-system \
-     --connection-string-type SQLAzure \
-     --settings DefaultConnection="Server=tcp:eventease-sql-server.database.windows.net,1433;Initial Catalog=EventEaseDB;Persist Security Info=False;User ID=eventeaseadmin;Password=YourStrongPassword123!;MultipleActiveResultSets=True;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
+     --location "South Africa North" \
+     --sku Standard_LRS \
+     --kind StorageV2
    ```
 
-### Part 3: Migrate Data to Azure SQL
+2. **Create Container for Venue Images**
+   ```bash
+   az storage container create \
+     --name venue-images \
+     --account-name eventeasestorage \
+     --public-access blob
+   ```
+
+3. **Get Storage Connection String**
+   ```bash
+   az storage account show-connection-string \
+     --name eventeasestorage \
+     --resource-group EventEaseResourceGroup
+   ```
+
+4. **Configure App Service Application Setting**
+   - Go to Azure Portal → App Service → Settings → Configuration → Application settings
+   - Add:
+     - **Name**: `AzureStorage:ConnectionString`
+     - **Value**: Your Storage connection string
+   - Click **Save** and **Restart**
+
+### Part 4: Migrate Data to Azure SQL
 
 #### Option 1: Using EF Core Migrations (Recommended)
 
@@ -242,6 +303,8 @@ EventEase/
 │   ├── Booking.cs
 │   ├── Event.cs
 │   └── Venue.cs
+├── Services/              # Business Logic Services
+│   └── BlobStorageService.cs
 ├── Views/                 # Razor Views
 │   ├── Bookings/
 │   ├── Events/
@@ -250,8 +313,11 @@ EventEase/
 │   └── Venues/
 ├── wwwroot/               # Static files (CSS, JS, Images)
 ├── appsettings.json       # Configuration
-├── database_script.sql    # Database creation script
-├── DATABASE_DOCUMENTATION.md
+├── appsettings.Production.json
+├── web.config             # IIS configuration for Azure
+├── AZURE_DEPLOYMENT_GUIDE.md
+├── DEPLOYMENT_CHECKLIST.md
+├── Theoretical_Research_Part2.md
 └── README.md
 ```
 
@@ -282,16 +348,46 @@ if (hasBookings)
 }
 ```
 
-### Flexible Event-Venue Relationship
+### Required Event-Venue Relationship
 
-Events can be created without a venue assignment, allowing events to exist before venues are confirmed. Bookings are used to finalize the venue-event relationship.
+Events must be assigned to a venue before creation. The `Event` model enforces this with a required `VenueId` field:
+
+```csharp
+[Required(ErrorMessage = "Venue is required")]
+public int VenueId { get; set; }
+```
+
+### Azure Blob Storage Integration
+
+Venue images are uploaded to Azure Blob Storage using the `BlobStorageService`:
+
+```csharp
+public async Task<string> UploadImageAsync(IFormFile imageFile)
+{
+    var blobClient = _containerClient.GetBlobClient($"{Guid.NewGuid()}.jpg");
+    await blobClient.UploadAsync(imageFile.OpenReadStream(), true);
+    return blobClient.Uri.ToString();
+}
+```
+
+### Search Functionality
+
+All index pages support real-time search filtering:
+- **Venues**: Search by name or location
+- **Events**: Search by event name or description
+- **Bookings**: Search by event name, venue name, or customer name
+
+### Toast Notifications
+
+Validation errors and success messages are displayed as Bootstrap toast notifications for better UX.
 
 ## Security Considerations
 
-- **Connection Strings**: Use Azure Key Vault or App Service configuration for production
+- **Connection Strings**: Use Azure App Service configuration or Azure Key Vault for production - never commit secrets to GitHub
 - **SQL Injection Protection**: Entity Framework Core parameterizes all queries
 - **XSS Protection**: Razor views automatically encode output
 - **CSRF Protection**: Anti-forgery tokens enabled on all forms
+- **Secret Scanning**: GitHub blocks commits containing secrets like Azure connection strings
 
 ## Troubleshooting
 
@@ -301,15 +397,33 @@ Events can be created without a venue assignment, allowing events to exist befor
    - Verify SQL Server is running
    - Check connection string in `appsettings.json`
    - Ensure firewall rules allow connection
+   - For Azure: Enable "Allow Azure services" in SQL Server firewall
 
 2. **Migrations fail**
    - Ensure `dotnet-ef` tool is installed: `dotnet tool install --global dotnet-ef`
    - Delete Migrations folder and run `dotnet ef migrations add InitialCreate`
+   - Check that table names match (singular vs plural)
 
 3. **Azure deployment fails**
    - Ensure Azure CLI is logged in: `az login`
    - Check resource quotas in your subscription
    - Verify runtime stack matches (Windows/Linux)
+   - Check `web.config` is included in project
+
+4. **Event creation fails with "Venue field required"**
+   - Ensure you select a venue from the dropdown
+   - Check that venues exist in the database
+   - Verify `VenueId` is required in the Event model
+
+5. **Image upload fails**
+   - Verify Azure Storage connection string is configured
+   - Ensure storage container "venue-images" exists
+   - Check that BlobStorageService is registered in `Program.cs`
+
+6. **GitHub push blocked due to secrets**
+   - Remove real connection strings from `appsettings.json`
+   - Use Azure Portal configuration for production secrets
+   - Use `git reset --soft HEAD~1` to undo commits with secrets
 
 ## License
 
