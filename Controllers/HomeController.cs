@@ -18,7 +18,7 @@ namespace EventEase.Controllers
             ViewBag.VenueCount = await _context.Venues.CountAsync();
             ViewBag.EventCount = await _context.Events.CountAsync();
             ViewBag.BookingCount = await _context.Bookings.CountAsync();
-            
+
             var upcomingBookings = await _context.Bookings
                 .Include(b => b.Event)
                 .Include(b => b.Venue)
@@ -26,7 +26,7 @@ namespace EventEase.Controllers
                 .OrderBy(b => b.StartDate)
                 .Take(5)
                 .ToListAsync();
-                
+
             return View(upcomingBookings);
         }
 

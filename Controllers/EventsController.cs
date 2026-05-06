@@ -16,9 +16,17 @@ namespace EventEase.Controllers
         }
 
         // GET: Events
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string searchString)
         {
-            var events = _context.Events.Include(e => e.Venue);
+            var events = _context.Events.Include(e => e.Venue).AsQueryable();
+
+            if (!string.IsNullOrEmpty(searchString))
+            {
+                events = events.Where(e => e.EventName.Contains(searchString) ||
+                                           (e.Description != null && e.Description.Contains(searchString)));
+            }
+
+            ViewData["CurrentFilter"] = searchString;
             return View(await events.ToListAsync());
         }
 
@@ -55,6 +63,9 @@ namespace EventEase.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("EventName,EventDate,Description,VenueId")] Event eventItem)
         {
+            // Debug logging
+            Console.WriteLine($"DEBUG: EventName={eventItem.EventName}, EventDate={eventItem.EventDate}, VenueId={eventItem.VenueId}");
+
             if (ModelState.IsValid)
             {
                 eventItem.CreatedDate = DateTime.Now;
@@ -63,6 +74,16 @@ namespace EventEase.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
+
+            // Log validation errors
+            foreach (var state in ModelState)
+            {
+                foreach (var error in state.Value.Errors)
+                {
+                    Console.WriteLine($"DEBUG VALIDATION ERROR: {state.Key} - {error.ErrorMessage}");
+                }
+            }
+
             ViewData["VenueId"] = new SelectList(_context.Venues, "VenueId", "VenueName", eventItem.VenueId);
             return View(eventItem);
         }

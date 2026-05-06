@@ -1,5 +1,6 @@
 using EventEase.Data;
 using EventEase.Models;
+using EventEase.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,16 +9,26 @@ namespace EventEase.Controllers
     public class VenuesController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly BlobStorageService _blobStorageService;
 
-        public VenuesController(ApplicationDbContext context)
+        public VenuesController(ApplicationDbContext context, BlobStorageService blobStorageService)
         {
             _context = context;
+            _blobStorageService = blobStorageService;
         }
 
         // GET: Venues
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string searchString)
         {
-            return View(await _context.Venues.ToListAsync());
+            var venues = from v in _context.Venues select v;
+
+            if (!string.IsNullOrEmpty(searchString))
+            {
+                venues = venues.Where(v => v.VenueName.Contains(searchString) || v.Location.Contains(searchString));
+            }
+
+            ViewData["CurrentFilter"] = searchString;
+            return View(await venues.ToListAsync());
         }
 
         // GET: Venues/Details/5
@@ -50,10 +61,16 @@ namespace EventEase.Controllers
         // POST: Venues/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("VenueName,Location,Capacity,ImageUrl")] Venue venue)
+        public async Task<IActionResult> Create([Bind("VenueName,Location,Capacity")] Venue venue, IFormFile? imageFile)
         {
             if (ModelState.IsValid)
             {
+                // Upload image to Azure Blob Storage if provided
+                if (imageFile != null && imageFile.Length > 0)
+                {
+                    venue.ImageUrl = await _blobStorageService.UploadImageAsync(imageFile);
+                }
+
                 venue.CreatedDate = DateTime.Now;
                 venue.ModifiedDate = DateTime.Now;
                 _context.Add(venue);
@@ -82,7 +99,7 @@ namespace EventEase.Controllers
         // POST: Venues/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("VenueId,VenueName,Location,Capacity,ImageUrl,CreatedDate")] Venue venue)
+        public async Task<IActionResult> Edit(int id, [Bind("VenueId,VenueName,Location,Capacity,CreatedDate")] Venue venue, IFormFile? imageFile)
         {
             if (id != venue.VenueId)
             {
@@ -93,8 +110,29 @@ namespace EventEase.Controllers
             {
                 try
                 {
+                    var existingVenue = await _context.Venues.FindAsync(id);
+                    if (existingVenue == null)
+                    {
+                        return NotFound();
+                    }
+
+                    // Upload new image to Azure Blob Storage if provided
+                    if (imageFile != null && imageFile.Length > 0)
+                    {
+                        // Delete old image if exists
+                        if (!string.IsNullOrEmpty(existingVenue.ImageUrl))
+                        {
+                            await _blobStorageService.DeleteImageAsync(existingVenue.ImageUrl);
+                        }
+                        venue.ImageUrl = await _blobStorageService.UploadImageAsync(imageFile);
+                    }
+                    else
+                    {
+                        venue.ImageUrl = existingVenue.ImageUrl;
+                    }
+
                     venue.ModifiedDate = DateTime.Now;
-                    _context.Update(venue);
+                    _context.Entry(existingVenue).CurrentValues.SetValues(venue);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
@@ -154,6 +192,12 @@ namespace EventEase.Controllers
             var venueToDelete = await _context.Venues.FindAsync(id);
             if (venueToDelete != null)
             {
+                // Delete image from Azure Blob Storage if exists
+                if (!string.IsNullOrEmpty(venueToDelete.ImageUrl))
+                {
+                    await _blobStorageService.DeleteImageAsync(venueToDelete.ImageUrl);
+                }
+
                 _context.Venues.Remove(venueToDelete);
                 await _context.SaveChangesAsync();
             }

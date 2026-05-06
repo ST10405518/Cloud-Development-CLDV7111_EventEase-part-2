@@ -21,8 +21,9 @@ namespace EventEase.Models
         [StringLength(500, ErrorMessage = "Description cannot exceed 500 characters")]
         public string? Description { get; set; }
 
+        [Required(ErrorMessage = "Venue is required")]
         [Display(Name = "Venue")]
-        public int? VenueId { get; set; }
+        public int VenueId { get; set; }
 
         [ForeignKey("VenueId")]
         public Venue? Venue { get; set; }

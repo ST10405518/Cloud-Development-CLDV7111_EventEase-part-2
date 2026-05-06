@@ -18,8 +18,9 @@
         <div class="col-md-8">
             <div class="card">
                 <div class="card-body">
-                    <form asp-action="Create">
-                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                    <form asp-action="Create" method="post">
+                        <div asp-validation-summary="All" class="text-danger"></div>
+                        <input type="hidden" asp-for="CreatedDate" value="@DateTime.Now" />
 
                         <div class="mb-3">
                             <label asp-for="EventName" class="form-label"></label>
@@ -34,12 +35,15 @@
                         </div>
 
                         <div class="mb-3">
-                            <label asp-for="VenueId" class="form-label">Venue (Optional)</label>
-                            <select asp-for="VenueId" class="form-select" asp-items="ViewBag.VenueId">
+                            <label for="VenueId" class="form-label">Venue</label>
+                            <select name="VenueId" id="VenueId" class="form-select">
                                 <option value="">-- Select Venue --</option>
+                                @foreach (var venue in (SelectList)ViewBag.VenueId)
+                                {
+                                    <option value="@venue.Value">@venue.Text</option>
+                                }
                             </select>
                             <span asp-validation-for="VenueId" class="text-danger"></span>
-                            <div class="form-text">You can create a booking later to assign this event to a venue</div>
                         </div>
 
                         <div class="mb-3">
@@ -64,5 +68,7 @@
 </div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }

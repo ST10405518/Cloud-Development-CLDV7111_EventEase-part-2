@@ -18,6 +18,11 @@ namespace EventEase.Data
         {
             base.OnModelCreating(modelBuilder);
 
+            // Map to plural table names (matching Azure SQL database created by EF migrations)
+            modelBuilder.Entity<Venue>().ToTable("Venues");
+            modelBuilder.Entity<Event>().ToTable("Events");
+            modelBuilder.Entity<Booking>().ToTable("Bookings");
+
             // Configure relationships and constraints
             modelBuilder.Entity<Venue>(entity =>
             {
@@ -33,7 +38,8 @@ namespace EventEase.Data
                 entity.HasOne(e => e.Venue)
                       .WithMany(v => v.Events)
                       .HasForeignKey(e => e.VenueId)
-                      .OnDelete(DeleteBehavior.SetNull);
+                      .IsRequired()
+                      .OnDelete(DeleteBehavior.Restrict);
             });
 
             modelBuilder.Entity<Booking>(entity =>
@@ -42,12 +48,12 @@ namespace EventEase.Data
                 entity.Property(b => b.CustomerEmail).HasMaxLength(100);
                 entity.Property(b => b.CustomerPhone).HasMaxLength(20);
                 entity.Property(b => b.BookingStatus).HasMaxLength(20);
-                
+
                 entity.HasOne(b => b.Event)
                       .WithMany(e => e.Bookings)
                       .HasForeignKey(b => b.EventId)
                       .OnDelete(DeleteBehavior.Cascade);
-                
+
                 entity.HasOne(b => b.Venue)
                       .WithMany(v => v.Bookings)
                       .HasForeignKey(b => b.VenueId)

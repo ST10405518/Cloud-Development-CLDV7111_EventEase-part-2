@@ -1,4 +1,5 @@
 using EventEase.Data;
+using EventEase.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,6 +11,9 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+// Add Blob Storage Service
+builder.Services.AddSingleton<BlobStorageService>();
+
 var app = builder.Build();
 
 // Apply EF Core migrations automatically
@@ -18,13 +22,12 @@ using (var scope = app.Services.CreateScope())
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     try
     {
-        db.Database.Migrate(); // <-- This creates tables if they don't exist
+        db.Database.Migrate(); // <-- Creates tables on first run in any environment
     }
     catch (Exception ex)
     {
-        // Log the error so you can see what went wrong
         Console.WriteLine("Error applying migrations: " + ex.Message);
-        throw; // rethrow to crash if migrations fail
+        throw;
     }
 }
 

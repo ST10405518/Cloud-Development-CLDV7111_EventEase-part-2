@@ -18,8 +18,8 @@
         <div class="col-md-8">
             <div class="card">
                 <div class="card-body">
-                    <form asp-action="Edit">
-                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                    <form asp-action="Edit" method="post">
+                        <div asp-validation-summary="All" class="text-danger"></div>
                         <input type="hidden" asp-for="EventId" />
                         <input type="hidden" asp-for="CreatedDate" />
 
@@ -36,10 +36,8 @@
                         </div>
 
                         <div class="mb-3">
-                            <label asp-for="VenueId" class="form-label">Venue (Optional)</label>
-                            <select asp-for="VenueId" class="form-select" asp-items="ViewBag.VenueId">
-                                <option value="">-- Select Venue --</option>
-                            </select>
+                            <label asp-for="VenueId" class="form-label">Venue</label>
+                            <select asp-for="VenueId" class="form-select" asp-items="ViewBag.VenueId"></select>
                             <span asp-validation-for="VenueId" class="text-danger"></span>
                         </div>
 
