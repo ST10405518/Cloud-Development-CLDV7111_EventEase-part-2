@@ -59,8 +59,17 @@ namespace EventEase.Controllers
         // GET: Bookings/Create
         public IActionResult Create()
         {
-            ViewData["EventId"] = new SelectList(_context.Events, "EventId", "EventName");
-            ViewData["VenueId"] = new SelectList(_context.Venues, "VenueId", "VenueName");
+            try
+            {
+                ViewData["EventId"] = new SelectList(_context.Events, "EventId", "EventName");
+                ViewData["VenueId"] = new SelectList(_context.Venues, "VenueId", "VenueName");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error loading dropdowns: {ex.Message}");
+                ViewData["EventId"] = new SelectList(Enumerable.Empty<SelectListItem>(), "EventId", "EventName");
+                ViewData["VenueId"] = new SelectList(Enumerable.Empty<SelectListItem>(), "VenueId", "VenueName");
+            }
             return View();
         }
 
