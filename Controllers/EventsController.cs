@@ -18,7 +18,7 @@ namespace EventEase.Controllers
         // GET: Events
         public async Task<IActionResult> Index(string searchString)
         {
-            var events = _context.Events.Include(e => e.Venue).AsQueryable();
+            var events = _context.Events.Include(e => e.Venue).Include(e => e.EventType).AsQueryable();
 
             if (!string.IsNullOrEmpty(searchString))
             {
@@ -40,6 +40,7 @@ namespace EventEase.Controllers
 
             var eventItem = await _context.Events
                 .Include(e => e.Venue)
+                .Include(e => e.EventType)
                 .Include(e => e.Bookings)
                 .FirstOrDefaultAsync(m => m.EventId == id);
 
@@ -55,16 +56,17 @@ namespace EventEase.Controllers
         public IActionResult Create()
         {
             ViewData["VenueId"] = new SelectList(_context.Venues, "VenueId", "VenueName");
+            ViewData["EventTypeId"] = new SelectList(_context.EventTypes, "EventTypeId", "EventTypeName");
             return View();
         }
 
         // POST: Events/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("EventName,EventDate,Description,VenueId")] Event eventItem)
+        public async Task<IActionResult> Create([Bind("EventName,EventDate,Description,VenueId,EventTypeId")] Event eventItem)
         {
             // Debug logging
-            Console.WriteLine($"DEBUG: EventName={eventItem.EventName}, EventDate={eventItem.EventDate}, VenueId={eventItem.VenueId}");
+            Console.WriteLine($"DEBUG: EventName={eventItem.EventName}, EventDate={eventItem.EventDate}, VenueId={eventItem.VenueId}, EventTypeId={eventItem.EventTypeId}");
 
             if (ModelState.IsValid)
             {
@@ -85,6 +87,7 @@ namespace EventEase.Controllers
             }
 
             ViewData["VenueId"] = new SelectList(_context.Venues, "VenueId", "VenueName", eventItem.VenueId);
+            ViewData["EventTypeId"] = new SelectList(_context.EventTypes, "EventTypeId", "EventTypeName", eventItem.EventTypeId);
             return View(eventItem);
         }
 
@@ -102,13 +105,14 @@ namespace EventEase.Controllers
                 return NotFound();
             }
             ViewData["VenueId"] = new SelectList(_context.Venues, "VenueId", "VenueName", eventItem.VenueId);
+            ViewData["EventTypeId"] = new SelectList(_context.EventTypes, "EventTypeId", "EventTypeName", eventItem.EventTypeId);
             return View(eventItem);
         }
 
         // POST: Events/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("EventId,EventName,EventDate,Description,VenueId,CreatedDate")] Event eventItem)
+        public async Task<IActionResult> Edit(int id, [Bind("EventId,EventName,EventDate,Description,VenueId,EventTypeId,CreatedDate")] Event eventItem)
         {
             if (id != eventItem.EventId)
             {
@@ -137,6 +141,7 @@ namespace EventEase.Controllers
                 return RedirectToAction(nameof(Index));
             }
             ViewData["VenueId"] = new SelectList(_context.Venues, "VenueId", "VenueName", eventItem.VenueId);
+            ViewData["EventTypeId"] = new SelectList(_context.EventTypes, "EventTypeId", "EventTypeName", eventItem.EventTypeId);
             return View(eventItem);
         }
 

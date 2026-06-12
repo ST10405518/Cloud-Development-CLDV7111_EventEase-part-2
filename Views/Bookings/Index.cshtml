@@ -27,15 +27,45 @@
     </div>
 
     <form asp-action="Index" method="get" class="mb-4">
-        <div class="input-group">
-            <input type="text" name="searchString" class="form-control" placeholder="Search by event, venue, or customer..." value="@ViewData["CurrentFilter"]" />
-            <button type="submit" class="btn btn-outline-primary">
-                <i class="bi bi-search"></i> Search
-            </button>
-            @if (!string.IsNullOrEmpty(ViewData["CurrentFilter"]?.ToString()))
-            {
-                <a asp-action="Index" class="btn btn-outline-secondary">Clear</a>
-            }
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-funnel"></i> Advanced Filters</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label">Search</label>
+                        <input type="text" name="searchString" class="form-control" placeholder="Event, venue, or customer..." value="@ViewData["CurrentFilter"]" />
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Event Type</label>
+                        <select name="eventTypeId" class="form-select" asp-items="@ViewData["EventTypes"] as SelectList">
+                            <option value="">All Types</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Start Date</label>
+                        <input type="date" name="startDate" class="form-control" value="@(ViewData["StartDate"] != null ? ((DateTime)ViewData["StartDate"]).ToString("yyyy-MM-dd") : "")" />
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">End Date</label>
+                        <input type="date" name="endDate" class="form-control" value="@(ViewData["EndDate"] != null ? ((DateTime)ViewData["EndDate"]).ToString("yyyy-MM-dd") : "")" />
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Venue Available</label>
+                        <select name="venueAvailable" class="form-select">
+                            <option value="">All</option>
+                            <option value="true" selected="@(ViewData["VenueAvailable"]?.ToString() == "True")">Available</option>
+                            <option value="false" selected="@(ViewData["VenueAvailable"]?.ToString() == "False")">Not Available</option>
+                        </select>
+                    </div>
+                    <div class="col-md-1 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-search"></i> Filter
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
     </form>
 
@@ -46,6 +76,7 @@
                     <tr>
                         <th>Booking ID</th>
                         <th>Event</th>
+                        <th>Event Type</th>
                         <th>Venue</th>
                         <th>Start Date</th>
                         <th>End Date</th>
@@ -60,6 +91,11 @@
                         <tr>
                             <td>#@item.BookingId</td>
                             <td class="fw-bold">@item.Event?.EventName</td>
+                            <td>
+                                <span class="badge bg-secondary">
+                                    <i class="bi bi-tag"></i> @item.Event?.EventType?.EventTypeName
+                                </span>
+                            </td>
                             <td>
                                 <span class="badge bg-info">
                                     <i class="bi bi-building"></i> @item.Venue?.VenueName

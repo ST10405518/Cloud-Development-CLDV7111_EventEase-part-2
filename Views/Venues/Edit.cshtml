@@ -42,6 +42,11 @@
                             <span asp-validation-for="Capacity" class="text-danger"></span>
                         </div>
 
+                        <div class="mb-3 form-check">
+                            <input asp-for="IsAvailable" class="form-check-input" />
+                            <label asp-for="IsAvailable" class="form-check-label"></label>
+                        </div>
+
                         @if (!string.IsNullOrEmpty(Model.ImageUrl))
                         {
                             <div class="mb-3">

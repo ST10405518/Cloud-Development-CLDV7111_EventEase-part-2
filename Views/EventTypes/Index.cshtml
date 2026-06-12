@@ -1,0 +1,81 @@
+@model IEnumerable<EventEase.Models.EventType>
+
+@{
+    ViewData["Title"] = "Event Types";
+}
+
+<div class="hero-section">
+    <div class="container">
+        <h1 class="display-4 fw-bold">
+            <i class="bi bi-tags"></i> Event Types
+        </h1>
+        <p class="lead">Manage event type categories</p>
+    </div>
+</div>
+
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>All Event Types</h2>
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> New Event Type
+        </a>
+    </div>
+
+    <div class="table-container">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Event Type ID</th>
+                        <th>Event Type Name</th>
+                        <th>Description</th>
+                        <th>Is Available</th>
+                        <th>Created Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>#@item.EventTypeId</td>
+                            <td class="fw-bold">@item.EventTypeName</td>
+                            <td>@item.Description</td>
+                            <td>
+                                <span class="badge @(item.IsAvailable ? "bg-success" : "bg-danger")">
+                                    @(item.IsAvailable ? "Available" : "Not Available")
+                                </span>
+                            </td>
+                            <td>@item.CreatedDate.ToString("g")</td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a asp-action="Details" asp-route-id="@item.EventTypeId" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a asp-action="Edit" asp-route-id="@item.EventTypeId" class="btn btn-sm btn-outline-warning">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <a asp-action="Delete" asp-route-id="@item.EventTypeId" class="btn btn-sm btn-outline-danger">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="text-center py-5">
+            <i class="bi bi-tags" style="font-size: 5rem; color: #ccc;"></i>
+            <h3 class="mt-3 text-muted">No Event Types Found</h3>
+            <p class="text-muted">Get started by creating your first event type.</p>
+            <a asp-action="Create" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Create New Event Type
+            </a>
+        </div>
+    }
+</div>

@@ -37,8 +37,14 @@
 
                         <div class="mb-3">
                             <label asp-for="VenueId" class="form-label">Venue</label>
-                            <select asp-for="VenueId" class="form-select" asp-items="ViewBag.VenueId"></select>
+                            <select asp-for="VenueId" class="form-select" asp-items="@(ViewData["VenueId"] as SelectList)"></select>
                             <span asp-validation-for="VenueId" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="EventTypeId" class="form-label">Event Type</label>
+                            <select asp-for="EventTypeId" class="form-select" asp-items="@(ViewData["EventTypeId"] as SelectList)"></select>
+                            <span asp-validation-for="EventTypeId" class="text-danger"></span>
                         </div>
 
                         <div class="mb-3">

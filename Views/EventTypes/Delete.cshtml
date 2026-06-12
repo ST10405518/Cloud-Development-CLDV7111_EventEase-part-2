@@ -1,0 +1,54 @@
+@model EventEase.Models.EventType
+
+@{
+    ViewData["Title"] = "Delete Event Type";
+}
+
+<div class="hero-section">
+    <div class="container">
+        <h1 class="display-4 fw-bold">
+            <i class="bi bi-trash"></i> Delete Event Type
+        </h1>
+        <p class="lead">Are you sure you want to delete this event type?</p>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <dl class="row">
+                        <dt class="col-sm-4">Event Type ID</dt>
+                        <dd class="col-sm-8">@Model.EventTypeId</dd>
+                        
+                        <dt class="col-sm-4">Event Type Name</dt>
+                        <dd class="col-sm-8">@Model.EventTypeName</dd>
+                        
+                        <dt class="col-sm-4">Description</dt>
+                        <dd class="col-sm-8">@Model.Description</dd>
+                        
+                        <dt class="col-sm-4">Is Available</dt>
+                        <dd class="col-sm-8">
+                            <span class="badge @(Model.IsAvailable ? "bg-success" : "bg-danger")">
+                                @(Model.IsAvailable ? "Available" : "Not Available")
+                            </span>
+                        </dd>
+                    </dl>
+                    
+                    <form asp-action="Delete">
+                        <input type="hidden" asp-for="EventTypeId" />
+                        <div class="d-flex justify-content-between mt-4">
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="bi bi-arrow-left"></i> Back to List
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="bi bi-trash"></i> Delete
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -38,12 +38,24 @@
                             <label for="VenueId" class="form-label">Venue</label>
                             <select name="VenueId" id="VenueId" class="form-select">
                                 <option value="">-- Select Venue --</option>
-                                @foreach (var venue in (SelectList)ViewBag.VenueId)
+                                @foreach (var venue in (SelectList)ViewData["VenueId"])
                                 {
                                     <option value="@venue.Value">@venue.Text</option>
                                 }
                             </select>
                             <span asp-validation-for="VenueId" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="EventTypeId" class="form-label">Event Type</label>
+                            <select name="EventTypeId" id="EventTypeId" class="form-select">
+                                <option value="">-- Select Event Type --</option>
+                                @foreach (var eventType in (SelectList)ViewData["EventTypeId"])
+                                {
+                                    <option value="@eventType.Value">@eventType.Text</option>
+                                }
+                            </select>
+                            <span asp-validation-for="EventTypeId" class="text-danger"></span>
                         </div>
 
                         <div class="mb-3">

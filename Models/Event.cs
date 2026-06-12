@@ -28,6 +28,13 @@ namespace EventEase.Models
         [ForeignKey("VenueId")]
         public Venue? Venue { get; set; }
 
+        [Required(ErrorMessage = "Event type is required")]
+        [Display(Name = "Event Type")]
+        public int EventTypeId { get; set; }
+
+        [ForeignKey("EventTypeId")]
+        public EventType? EventType { get; set; }
+
         [Display(Name = "Created Date")]
         public DateTime CreatedDate { get; set; } = DateTime.Now;
 

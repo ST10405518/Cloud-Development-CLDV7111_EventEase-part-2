@@ -40,6 +40,7 @@
                 <thead class="table-dark">
                     <tr>
                         <th>@Html.DisplayNameFor(model => model.EventName)</th>
+                        <th>Event Type</th>
                         <th>@Html.DisplayNameFor(model => model.EventDate)</th>
                         <th>@Html.DisplayNameFor(model => model.Venue)</th>
                         <th>@Html.DisplayNameFor(model => model.Description)</th>
@@ -51,6 +52,20 @@
                     {
                         <tr>
                             <td class="fw-bold">@Html.DisplayFor(modelItem => item.EventName)</td>
+                            <td>
+                                @if (item.EventType != null)
+                                {
+                                    <span class="badge bg-secondary">
+                                        <i class="bi bi-tag"></i> @item.EventType.EventTypeName
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-warning text-dark">
+                                        <i class="bi bi-question-circle"></i> No Type Assigned
+                                    </span>
+                                }
+                            </td>
                             <td>@item.EventDate.ToString("MMM dd, yyyy HH:mm")</td>
                             <td>
                                 @if (item.Venue != null)

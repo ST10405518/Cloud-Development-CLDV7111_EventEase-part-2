@@ -16,10 +16,11 @@ namespace EventEase.Controllers
         }
 
         // GET: Bookings
-        public async Task<IActionResult> Index(string searchString)
+        public async Task<IActionResult> Index(string searchString, int? eventTypeId, DateTime? startDate, DateTime? endDate, bool? venueAvailable)
         {
             var bookings = _context.Bookings
                 .Include(b => b.Event)
+                .ThenInclude(e => e.EventType)
                 .Include(b => b.Venue)
                 .AsQueryable();
 
@@ -31,7 +32,35 @@ namespace EventEase.Controllers
                     (b.CustomerName != null && b.CustomerName.Contains(searchString)));
             }
 
+            if (eventTypeId.HasValue)
+            {
+                bookings = bookings.Where(b => b.Event != null && b.Event.EventTypeId == eventTypeId.Value);
+            }
+
+            if (startDate.HasValue)
+            {
+                bookings = bookings.Where(b => b.StartDate >= startDate.Value);
+            }
+
+            if (endDate.HasValue)
+            {
+                bookings = bookings.Where(b => b.EndDate <= endDate.Value);
+            }
+
+            if (venueAvailable.HasValue)
+            {
+                bookings = bookings.Where(b => b.Venue != null && b.Venue.IsAvailable == venueAvailable.Value);
+            }
+
             ViewData["CurrentFilter"] = searchString;
+            ViewData["EventTypeId"] = eventTypeId;
+            ViewData["StartDate"] = startDate;
+            ViewData["EndDate"] = endDate;
+            ViewData["VenueAvailable"] = venueAvailable;
+
+            var eventTypes = await _context.EventTypes.ToListAsync();
+            ViewData["EventTypes"] = new SelectList(eventTypes, "EventTypeId", "EventTypeName", eventTypeId);
+
             return View(await bookings.ToListAsync());
         }
 

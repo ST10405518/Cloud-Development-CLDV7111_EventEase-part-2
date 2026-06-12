@@ -61,7 +61,7 @@ namespace EventEase.Controllers
         // POST: Venues/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("VenueName,Location,Capacity")] Venue venue, IFormFile? imageFile)
+        public async Task<IActionResult> Create([Bind("VenueName,Location,Capacity,IsAvailable")] Venue venue, IFormFile? imageFile)
         {
             if (ModelState.IsValid)
             {
@@ -99,7 +99,7 @@ namespace EventEase.Controllers
         // POST: Venues/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("VenueId,VenueName,Location,Capacity,CreatedDate")] Venue venue, IFormFile? imageFile)
+        public async Task<IActionResult> Edit(int id, [Bind("VenueId,VenueName,Location,Capacity,IsAvailable,CreatedDate")] Venue venue, IFormFile? imageFile)
         {
             if (id != venue.VenueId)
             {

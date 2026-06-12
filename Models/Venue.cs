@@ -24,6 +24,9 @@ namespace EventEase.Models
         [Display(Name = "Image URL")]
         public string? ImageUrl { get; set; }
 
+        [Display(Name = "Is Available")]
+        public bool IsAvailable { get; set; } = true;
+
         [Display(Name = "Created Date")]
         public DateTime CreatedDate { get; set; } = DateTime.Now;
 

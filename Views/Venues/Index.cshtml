@@ -58,6 +58,9 @@
                             <span class="badge bg-info">
                                 <i class="bi bi-people"></i> Capacity: @item.Capacity
                             </span>
+                            <span class="badge @(item.IsAvailable ? "bg-success" : "bg-danger")">
+                                <i class="bi bi-check-circle"></i> @(item.IsAvailable ? "Available" : "Not Available")
+                            </span>
                         </p>
                     </div>
                     <div class="card-footer bg-transparent">

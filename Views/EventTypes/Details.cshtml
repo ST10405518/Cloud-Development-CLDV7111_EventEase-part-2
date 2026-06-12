@@ -1,0 +1,62 @@
+@model EventEase.Models.EventType
+
+@{
+    ViewData["Title"] = "Event Type Details";
+}
+
+<div class="hero-section">
+    <div class="container">
+        <h1 class="display-4 fw-bold">
+            <i class="bi bi-eye"></i> Event Type Details
+        </h1>
+        <p class="lead">View event type information</p>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <dl class="row">
+                        <dt class="col-sm-4">Event Type ID</dt>
+                        <dd class="col-sm-8">@Model.EventTypeId</dd>
+                        
+                        <dt class="col-sm-4">Event Type Name</dt>
+                        <dd class="col-sm-8">@Model.EventTypeName</dd>
+                        
+                        <dt class="col-sm-4">Description</dt>
+                        <dd class="col-sm-8">@Model.Description</dd>
+                        
+                        <dt class="col-sm-4">Is Available</dt>
+                        <dd class="col-sm-8">
+                            <span class="badge @(Model.IsAvailable ? "bg-success" : "bg-danger")">
+                                @(Model.IsAvailable ? "Available" : "Not Available")
+                            </span>
+                        </dd>
+                        
+                        <dt class="col-sm-4">Created Date</dt>
+                        <dd class="col-sm-8">@Model.CreatedDate.ToString("g")</dd>
+                        
+                        <dt class="col-sm-4">Modified Date</dt>
+                        <dd class="col-sm-8">@Model.ModifiedDate.ToString("g")</dd>
+                    </dl>
+                    
+                    <div class="d-flex justify-content-between mt-4">
+                        <a asp-action="Index" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Back to List
+                        </a>
+                        <div class="btn-group">
+                            <a asp-action="Edit" asp-route-id="@Model.EventTypeId" class="btn btn-warning">
+                                <i class="bi bi-pencil"></i> Edit
+                            </a>
+                            <a asp-action="Delete" asp-route-id="@Model.EventTypeId" class="btn btn-danger">
+                                <i class="bi bi-trash"></i> Delete
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
